@@ -66,10 +66,9 @@ densenet121 = models.densenet121(pretrained=True)
 def create_model(arch, hidden_units, learning_rate):
     # Select from available pretrained models
     model =  getattr(models,arch)(pretrained=True)
-    in_features = model.classifier[0].in_features
    
-    model_dict = {"vgg19": vgg19, "alexnet": alexnet, "alexnet": densenet121}
-    in_features_dict = {"vgg19": 25088, "alexnet": 9216, "alexnet": 1024}
+    model_dict = {"vgg19": vgg19, "alexnet": alexnet, "densenet121": densenet121}
+    in_features_dict = {"vgg19": 25088, "alexnet": 9216, "densenet121": 1024}
     
     model = model_dict[arch]
     in_features = in_features_dict[arch]       
@@ -135,7 +134,7 @@ class_names = image_datasets['train'].classes
 
 def train_model(model, criterion, optimizer, scheduler, epochs):
     since = time.time()
-    model.to('device')
+    model.to(device)
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -200,7 +199,7 @@ def train_model(model, criterion, optimizer, scheduler, epochs):
     model.load_state_dict(best_model_wts)
     return model
 
-model_trained = train_model(model, criterion, optimizer, scheduler, args.epochs)
+model_trained = train_model(model, criterion, optimizer, scheduler, epochs)
 
 print('-' * 10)
 print('Training Complete!!, Thanks for waiting')
