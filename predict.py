@@ -19,7 +19,7 @@ import argparse
 checkpoint = 'checkpoint.pth'
 filepath = 'cat_to_name.json'    
 arch=''
-image_path = 'flowers/test/100/image_07896'
+image_path = 'flowers/test/100/image_07896.jpg'
 top_k = 5
 
 #ARGSPARSE
@@ -34,7 +34,7 @@ args = parser.parse_args()
 #LOAD MDOEL
 def load_model(checkpoint_path):
 
-    checkpoint = torch.load(checkpoint_path)
+    checkpoint = torch.load(checkpoint_path, map_location={'cuda:0': 'cpu'})
     
     if checkpoint['arch'] == 'vgg19':
         model = models.vgg19(pretrained=True)
@@ -52,15 +52,17 @@ def load_model(checkpoint_path):
         for param in model.parameters():
             param.requires_grad = False
     else:
-        print('Sorry base architecture not recognised')
+        print('Sorry base architecture not recognised, ')
+        sys.exit()
     
     model.class_to_idx = checkpoint['class_to_idx']
     hidden_units = checkpoint['hidden_units']
+    num_output = checkpoint['num_output']
     
-    classifier = nn.Sequential(OrderedDict([('fc1', nn.Linear(25088, hidden_units)),
+    classifier = nn.Sequential(OrderedDict([('fc1', nn.Linear(in_features, hidden_units)),
                                             ('relu1', nn.ReLU()),
                                             ('dropout1', nn.Dropout(p=0.5)),
-                                            ('fc2', nn.Linear(hidden_units, 102)),
+                                            ('fc2', nn.Linear(hidden_units, num_output)),
                                             ('output', nn.LogSoftmax(dim=1))]))
     
     model.classifier = classifier
@@ -86,7 +88,7 @@ with open(filepath, 'r') as f:
 #Process a PIL image for use in a PyTorch model
 def process_image(image):
  
-    pil_im = Image.open(f'{image}' + '.jpg')
+    pil_im = Image.open(f'{image}')
 
     transform = transforms.Compose([transforms.Resize(256),
                                     transforms.CenterCrop(224),
@@ -99,7 +101,7 @@ def process_image(image):
     
     return np_image
 
-#PREDICT USING TRAINED MODEL - taken from https://github.com/paulstancliffe/Udacity-Image-Classifier/blob/master/predict.py
+#PREDICT USING TRAINED MODEL - model taken from https://github.com/paulstancliffe/Udacity-Image-Classifier/blob/master/predict.py
 def predict(image_path, model, top_k):
 
     #Implement the code to predict the class from an image file
