@@ -120,7 +120,7 @@ def predict(image_path, model, top_k):
     predictions = torch.exp(LogSoftmax_predictions)
     
     # Identify top predictions and top labels
-    top_preds, top_labs = predictions.topk(5)
+    top_preds, top_labs = predictions.topk(top_k)
     
     # Detach top predictions into a numpy list
     top_preds = top_preds.detach().numpy().tolist()
